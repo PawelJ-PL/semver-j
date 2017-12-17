@@ -1,0 +1,115 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "gradle.plugin.com.github.gradle-git-version-calculator:gradle-git-version-calculator:1.0.0"
+    }
+}
+
+plugins {
+    id 'java'
+    id 'idea'
+    id 'com.github.gradle-git-version-calculator' version '1.0.0'
+    id 'maven'
+    id 'signing'
+    id 'io.codearte.nexus-staging' version '0.11.0'
+}
+
+group 'com.github.pawelj-pl'
+def lib_name = "semver-j"
+
+gitVersionCalculator {
+    withSnapshot = true
+}
+
+version gitVersionCalculator.calculateVersion()
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+idea{
+    module {
+        downloadSources = true
+    }
+}
+
+test {
+    testLogging {
+        showStandardStreams = true
+        exceptionFormat = 'full'
+    }
+}
+
+signing {
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                name lib_name
+                packaging 'jar'
+                description 'Semantic Versioning library for Java'
+                url 'https://github.com/PawelJ-PL/semver-j'
+
+                scm {
+                    connection 'scm:https://github.com/PawelJ-PL/semver-j.git'
+                    developerConnection 'scm:https://github.com/PawelJ-PL/semver-j.git'
+                    url 'https://github.com/PawelJ-PL/semver-j.git'
+                }
+
+                licenses {
+                    license {
+                        name 'MIT license'
+                        url 'https://github.com/PawelJ-PL/semver-j/blob/master/LICENSE.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'pawelj-pl'
+                        name 'Pawel'
+                        email 'inne.poczta@gmail.com'
+                    }
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile group: 'org.assertj', name: 'assertj-core', version: '3.8.0'
+}

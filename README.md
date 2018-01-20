@@ -32,3 +32,6 @@ SemanticVersion v10 = version1.incrementPatch(); // value SemanticVersion(0, 1, 
 
 SemanticVersion v11 = version1.copy(); //value SemanticVersion(0, 1, 16, "BETA", "1000a")
 ```
+
+## Comparing
+SemanticVersion class implements Comparable interface, so two instances can be compared to each other using Semantic Versioning rules.
